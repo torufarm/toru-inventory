@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:myapp/models/product.dart';
 import 'package:myapp/services/api_service.dart';
 import 'package:myapp/views/product/edit.dart';
+import 'dart:async';
 
 class ProductListScreen extends StatefulWidget {
   @override
@@ -15,9 +16,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
   List<Product> filteredProducts = [];
   bool isLoadingMore = false;
   int currentPage = 1;
-  final int pageSize = 10; // Jumlah item per halaman
+  final int pageSize = 10; 
   bool hasMoreProducts = true;
-  String searchQuery = ""; // Variabel pencarian
+  String searchQuery = "";
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -25,11 +27,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
     _scrollController = ScrollController();
     _scrollController.addListener(_scrollListener);
     _searchController.addListener(_onSearchChanged);
-    _fetchProducts(); // Panggil API untuk mengambil produk
+    _fetchProducts();
   }
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
@@ -49,7 +52,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
       List<Product> newProducts = await apiService.fetchProducts(
         page: currentPage,
         pageSize: pageSize,
-        searchQuery: query.isNotEmpty ? query : searchQuery, // Jika ada pencarian, gunakan query
+        searchQuery: query.isNotEmpty
+            ? query
+            : searchQuery, // Jika ada pencarian, gunakan query
       );
 
       setState(() {
@@ -58,7 +63,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
         } else {
           products.addAll(newProducts); // Tambahkan produk untuk pagination
         }
-        filteredProducts = products; // Inisialisasi filteredProducts dengan semua produk
+        filteredProducts =
+            products; // Inisialisasi filteredProducts dengan semua produk
         currentPage++;
         if (newProducts.length < pageSize) {
           hasMoreProducts = false; // Tidak ada lagi produk yang bisa dimuat
@@ -75,27 +81,30 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   // Listener untuk pencarian
   void _onSearchChanged() {
-    String searchText = _searchController.text.trim().toLowerCase();
-    setState(() {
-      searchQuery = searchText; // Simpan query pencarian
-      currentPage = 1; // Reset halaman
-      products.clear(); // Hapus produk sebelumnya
-      
-      if (searchQuery.isEmpty) {
-        // Jika pencarian kosong, ambil ulang semua produk
-        hasMoreProducts = true; // Reset kondisi pagination
-        _fetchProducts(); // Ambil produk tanpa filter pencarian
-      } else {
-        // Jika ada pencarian, ambil produk sesuai dengan query
-        _fetchProducts(query: searchQuery);
-      }
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    _debounce = Timer(Duration(milliseconds: 500), () {
+      String searchText = _searchController.text.trim().toLowerCase();
+      setState(() {
+        searchQuery = searchText; // Simpan query pencarian
+        currentPage = 1; // Reset halaman
+        products.clear(); // Hapus produk sebelumnya
+
+        if (searchQuery.isEmpty) {
+          // Jika pencarian kosong, ambil ulang semua produk
+          hasMoreProducts = true; // Reset kondisi pagination
+          _fetchProducts(); // Ambil produk tanpa filter pencarian
+        } else {
+          // Jika ada pencarian, ambil produk sesuai dengan query
+          _fetchProducts(query: searchQuery);
+        }
+      });
     });
   }
 
-
-  // Listener untuk mendeteksi jika scroll mendekati bawah
   void _scrollListener() {
-    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
       _fetchProducts(); // Ambil lebih banyak produk saat scroll ke bawah
     }
   }
@@ -109,9 +118,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
           decoration: const InputDecoration(
             hintText: 'Cari produk...',
             border: InputBorder.none,
-            hintStyle: TextStyle(color: Colors.white),
+            fillColor: Colors.amber,
+            hintStyle: TextStyle(color: Colors.grey),
           ),
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.black),
         ),
       ),
       body: filteredProducts.isEmpty && !isLoadingMore
@@ -121,10 +131,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 Expanded(
                   child: ListView.builder(
                     controller: _scrollController,
-                    itemCount: filteredProducts.length + (isLoadingMore ? 1 : 0),
+                    itemCount:
+                        filteredProducts.length + (isLoadingMore ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index == filteredProducts.length) {
-                        return Center(child: CircularProgressIndicator());
+                        return SizedBox();
                       }
 
                       Product product = filteredProducts[index];
@@ -142,14 +153,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                   final updatedProduct = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => EditProductScreen(product: product),
+                                      builder: (context) =>
+                                          EditProductScreen(product: product),
                                     ),
                                   );
                                   if (updatedProduct != null) {
                                     setState(() {
-                                      int index = products.indexWhere((p) => p.id == updatedProduct.id);
+                                      int index = products.indexWhere(
+                                          (p) => p.id == updatedProduct.id);
                                       if (index != -1) {
-                                        products[index] = updatedProduct; // Update produk di daftar
+                                        products[index] =
+                                            updatedProduct; // Update produk di daftar
                                       }
                                     });
                                   }

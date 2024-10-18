@@ -38,7 +38,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
   Future<void> _updateProduct() async {
     if (_formKey.currentState!.validate()) {
-      // Buat object produk baru dengan data yang sudah diedit
+      
+      //
       Product updatedProduct = Product(
         id: widget.product.id, // id produk tetap sama
         name: _nameController.text,
@@ -49,6 +50,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
         updatedAt: DateTime.now(), // Waktu update saat ini
       );
 
+      //
       try {
         ApiService apiService = ApiService();
         await apiService.updateProduct(updatedProduct);

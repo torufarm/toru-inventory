@@ -55,39 +55,21 @@ class ApiService {
     }
   }
 
-  // Future<void> addProduct(Product product) async {
-  //   final response = await http.post(
-  //     Uri.parse('$baseUrl/products'),
-  //     headers: <String, String>{
-  //       'Content-Type': 'application/json; charset=UTF-8',
-  //     },
-  //     body: json.encode(product.toJson()),
-  //   );
+  Future<void> addProduct(Product product) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/v1/products/add'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        'name': product.name,
+        'price': product.price,
+        'total_stock': product.totalStock,
+        'unit': product.unit,
+      }),
+    );
 
-  //   if (response.statusCode != 201) {
-  //     throw Exception('Request failed with status: ${response.statusCode}.');
-  //   }
-  // }
-
-  // Future<void> updateProduct(int id, Product product) async {
-  //   final response = await http.put(
-  //     Uri.parse('$baseUrl/products/$id'),
-  //     headers: <String, String>{
-  //       'Content-Type': 'application/json; charset=UTF-8',
-  //     },
-  //     body: json.encode(product.toJson()),
-  //   );
-
-  //   if (response.statusCode != 200) {
-  //     throw Exception('Request failed with status: ${response.statusCode}.');
-  //   }
-  // }
-
-  // Future<void> deleteProduct(int id) async {
-  //   final response = await http.delete(Uri.parse('$baseUrl/products/$id'));
-
-  //   if (response.statusCode != 200) {
-  //     throw Exception('Request failed with status: ${response.statusCode}.');
-  //   }
-  // }
+    if (response.statusCode != 200) {
+      throw Exception("Failed to add product ${response.body}");
+    }
+  }
+  
 }

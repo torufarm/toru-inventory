@@ -1,5 +1,5 @@
 class Product {
-  final int id;
+  final int? id;
   final String name;
   final String? description;
   final double price;
@@ -9,7 +9,7 @@ class Product {
   final DateTime updatedAt;
 
   Product({
-    required this.id,
+    this.id,
     required this.name,
     this.description,
     required this.price,
