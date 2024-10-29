@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:myapp/models/product.dart';
 import 'package:myapp/services/api_service.dart';
@@ -13,31 +14,38 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _stockController = TextEditingController();
   final TextEditingController _unitController = TextEditingController();
+  final TextEditingController _hppController = TextEditingController();
 
   bool _isLoading = false;
+  String? _selectedCategory;
+
   Future<void> _submitProduct() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
-      // Membuat objek produk baru
+      // Object Add Product
       Product newProduct = Product(
         name: _nameController.text,
         price: double.parse(_priceController.text),
         totalStock: double.parse(_stockController.text),
         unit: _unitController.text,
+        hpp: double.parse(_hppController.text),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
-      
+
       try {
         await ApiService().addProduct(newProduct);
-        Navigator.pop(context); // Kembali ke halaman sebelumnya setelah sukses
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Produk berhasil ditambah')),
+        );
+        Navigator.pop(context);
       } catch (e) {
         print("Error: $e");
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Gagal menambahkan produk")),
+          SnackBar(content: Text("Gagal menambahkan produk $e")),
         );
       } finally {
         setState(() {
@@ -46,7 +54,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       }
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,6 +109,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return "Unit wajib diisi";
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _hppController,
+                decoration: InputDecoration(labelText: "Hpp"),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Harga wajib diisi";
+                  }
+                  if (double.tryParse(value) == null) {
+                    return "Harga harus berupa angka";
                   }
                   return null;
                 },

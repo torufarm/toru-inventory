@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:myapp/models/product.dart';
 
@@ -47,8 +49,11 @@ class ApiService {
         'price': product.price,
         'total_stock': product.totalStock,
         'unit': product.unit,
+        'images': product.images, // Send base64 encoded images
       }),
     );
+
+    print("server bicara : ${response.body}");
 
     if (response.statusCode != 200) {
       throw Exception('Failed to update product: ${response.body}');
@@ -71,5 +76,20 @@ class ApiService {
       throw Exception("Failed to add product ${response.body}");
     }
   }
-  
+
+  Future<List<CategoryIds>> getCategories(
+      {int page = 1, int pageSize = 10, String searchQuery = ""}) async {
+    String url = "$baseUrl/api/v1/categories";
+
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> jsonResponse = json.decode(response.body);
+      List<dynamic> categoryJson = jsonResponse['categories'];
+
+      return categoryJson.map((data) => CategoryIds.fromJson(data)).toList();
+    } else {
+      throw Exception("Gagal memuat produk");
+    }
+  }
 }

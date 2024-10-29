@@ -16,7 +16,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   List<Product> filteredProducts = [];
   bool isLoadingMore = false;
   int currentPage = 1;
-  final int pageSize = 10; 
+  final int pageSize = 10;
   bool hasMoreProducts = true;
   String searchQuery = "";
   Timer? _debounce;
@@ -36,6 +36,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
     _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _reloadProducts() async {
+    setState(() {
+      currentPage = 1;
+      hasMoreProducts = true;
+      products.clear();
+    });
+    await _fetchProducts(); // Memanggil fungsi fetch untuk mengambil ulang data dari server
   }
 
   // Fungsi untuk mengambil produk dari API
@@ -141,9 +150,21 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       Product product = filteredProducts[index];
                       return Card(
                         child: ListTile(
+                          leading: product.images != null &&
+                                  product.images!.isNotEmpty
+                              ? Image.network(
+                                  'https://pos.torufarm.com/storage/app/public/product/${product.images![0]}',
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Icon(Icons.image_not_supported);
+                                  },
+                                )
+                              : Icon(Icons.image_not_supported),
                           title: Text(product.name),
                           subtitle: Text(
-                              'Harga: Rp ${product.price}, Stok: ${product.totalStock} ${product.unit}'),
+                              'Harga: Rp ${product.price}, Stok: ${product.totalStock} ${product.unit} ${product.categoryIds![0].id}'),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -157,15 +178,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                           EditProductScreen(product: product),
                                     ),
                                   );
+
                                   if (updatedProduct != null) {
-                                    setState(() {
-                                      int index = products.indexWhere(
-                                          (p) => p.id == updatedProduct.id);
-                                      if (index != -1) {
-                                        products[index] =
-                                            updatedProduct; // Update produk di daftar
-                                      }
-                                    });
+                                    _reloadProducts();
                                   }
                                 },
                               ),
@@ -179,7 +194,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           ),
                         ),
                         elevation: 2,
-                        margin: EdgeInsets.symmetric(
+                        margin: const EdgeInsets.symmetric(
                           vertical: 8,
                           horizontal: 16,
                         ),
@@ -188,8 +203,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   ),
                 ),
                 if (isLoadingMore)
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
                     child: CircularProgressIndicator(),
                   ),
               ],
