@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/views/product/add.dart';
-import 'package:myapp/views/product/list.dart';
+import 'package:toruerp/views/product/add.dart';
+import 'package:toruerp/views/product/list.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const toruerp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class toruerp extends StatelessWidget {
+  const toruerp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 8, 136, 106)),
+        colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color.fromARGB(255, 8, 136, 106)),
         useMaterial3: true,
       ),
       home: const MyHomePage(title: 'Torufarm Inventory'),
@@ -32,7 +33,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,7 +44,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            DrawerHeader(
+            const DrawerHeader(
               decoration: BoxDecoration(
                 color: Color.fromARGB(255, 7, 91, 68),
               ),
@@ -57,22 +57,22 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             ListTile(
-              leading: Icon(Icons.add_business),
-              title: Text('Produk Masuk'),
+              leading: const Icon(Icons.add_business),
+              title: const Text('Produk Masuk'),
               onTap: () {
                 Navigator.pop(context); // Menutup drawer
               },
             ),
             ListTile(
-              leading: Icon(Icons.seventeen_mp_outlined),
-              title: Text('Produk Sortir/Expired'),
+              leading: const Icon(Icons.seventeen_mp_outlined),
+              title: const Text('Produk Sortir/Expired'),
               onTap: () {
                 Navigator.pop(context);
               },
             ),
             ListTile(
-              leading: Icon(Icons.settings),
-              title: Text(''),
+              leading: const Icon(Icons.settings),
+              title: const Text(''),
               onTap: () {
                 Navigator.pop(context);
               },
@@ -82,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: ProductListScreen(),
       floatingActionButton: FloatingActionButton(
-        onPressed: (){
+        onPressed: () {
           // Navigasi ke halaman tambah produk
           Navigator.push(
             context,

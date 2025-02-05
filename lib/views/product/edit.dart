@@ -3,13 +3,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:myapp/models/product.dart';
-import 'package:myapp/services/api_service.dart';
+import 'package:toruerp/models/product.dart';
+import 'package:toruerp/services/api_service.dart';
 
 class EditProductScreen extends StatefulWidget {
   final Product product;
 
-  EditProductScreen({required this.product});
+  const EditProductScreen({super.key, required this.product});
 
   @override
   _EditProductScreenState createState() => _EditProductScreenState();
@@ -21,6 +21,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
   late TextEditingController _priceController;
   late TextEditingController _stockController;
   late TextEditingController _unitController;
+  late TextEditingController _hppController;
+  bool _isProductActive = false;
   List<File?> _selectedImages = [];
 
   @override
@@ -32,6 +34,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
     _stockController =
         TextEditingController(text: widget.product.totalStock.toString());
     _unitController = TextEditingController(text: widget.product.unit);
+    _hppController = TextEditingController(text: widget.product.hpp.toString());
+    _isProductActive = widget.product.status == 1;
   }
 
   @override
@@ -40,7 +44,10 @@ class _EditProductScreenState extends State<EditProductScreen> {
     _priceController.dispose();
     _stockController.dispose();
     _unitController.dispose();
+    _hppController.dispose();
     super.dispose();
+
+    // Initialize _isProductActive based on product status
   }
 
   Future<void> _pickImages() async {
@@ -68,6 +75,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
     });
   }
 
+  void _changeStatusProduct(bool? status) {
+    setState(() {
+      _isProductActive = status ?? false;
+    });
+  }
+
   Future<void> _updateProduct() async {
     if (_formKey.currentState!.validate()) {
       // Convert selected images to base64 strings
@@ -83,20 +96,22 @@ class _EditProductScreenState extends State<EditProductScreen> {
       // Create updated product object
       Product updatedProduct = Product(
         id: widget.product.id,
-        images: base64Images, // Use base64 strings for images
+        images: base64Images,
         name: _nameController.text,
         price: double.parse(_priceController.text),
         totalStock: double.parse(_stockController.text),
+        status: _isProductActive ? 1 : 0,
         unit: _unitController.text,
+        hpp: double.parse(_hppController.text),
         categoryIds: widget.product.categoryIds,
         createdAt: widget.product.createdAt,
         updatedAt: DateTime.now(),
       );
 
-      // API call to update product
       try {
         ApiService apiService = ApiService();
         await apiService.updateProduct(updatedProduct);
+
         Navigator.pop(context, updatedProduct);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -110,7 +125,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Produk'),
+        title: const Text('Edit Produk'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -138,7 +153,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                 top: 0,
                                 right: 0,
                                 child: IconButton(
-                                  icon: Icon(Icons.delete, color: Colors.red),
+                                  icon: const Icon(Icons.delete,
+                                      color: Colors.red),
                                   onPressed: () => _removeImage(index),
                                 ),
                               ),
@@ -154,7 +170,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                             height: 100,
                             fit: BoxFit.cover,
                           )
-                        : Icon(Icons.image, size: 100),
+                        : const Icon(Icons.image, size: 100),
               ),
               const SizedBox(height: 10),
               Row(
@@ -162,18 +178,22 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 children: [
                   ElevatedButton(
                     onPressed: _pickImageFromCamera,
-                    child: Text('Ambil Gambar'),
+                    child: const Text('Ambil Gambar'),
                   ),
                   ElevatedButton(
                     onPressed: _pickImages,
-                    child: Text('Upload Gambar'),
+                    child: const Text('Upload Gambar'),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
+              CheckboxListTile(
+                  title: const Text('Status'),
+                  value: _isProductActive,
+                  onChanged: _changeStatusProduct),
               TextFormField(
                 controller: _nameController,
-                decoration: InputDecoration(labelText: 'Nama Produk'),
+                decoration: const InputDecoration(labelText: 'Nama Produk'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Nama produk tidak boleh kosong';
@@ -184,7 +204,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
               TextFormField(
                 controller: _priceController,
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Harga Produk'),
+                decoration: const InputDecoration(labelText: 'Harga Produk'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Harga produk tidak boleh kosong';
@@ -195,7 +215,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
               TextFormField(
                 controller: _stockController,
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Stok Produk'),
+                decoration: const InputDecoration(labelText: 'Stok Produk'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Stok produk tidak boleh kosong';
@@ -205,7 +225,18 @@ class _EditProductScreenState extends State<EditProductScreen> {
               ),
               TextFormField(
                 controller: _unitController,
-                decoration: InputDecoration(labelText: 'Unit Produk'),
+                decoration: const InputDecoration(labelText: 'Unit Produk'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Unit produk tidak boleh kosong';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _hppController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Hpp'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Unit produk tidak boleh kosong';
@@ -216,7 +247,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _updateProduct,
-                child: Text('Simpan'),
+                child: const Text('Simpan'),
               ),
             ],
           ),

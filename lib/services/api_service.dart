@@ -1,8 +1,7 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:myapp/models/product.dart';
+import 'package:toruerp/models/category.dart';
+import 'package:toruerp/models/product.dart';
 
 class ApiService {
   final String baseUrl = 'https://pos.torufarm.com';
@@ -26,7 +25,6 @@ class ApiService {
     }
   }
 
-  // Metode untuk mencari produk berdasarkan nama
   Future<List<Product>> searchProducts(String query) async {
     final response = await http.get(Uri.parse('$baseUrl/search?name=$query'));
     if (response.statusCode == 200) {
@@ -47,13 +45,13 @@ class ApiService {
       body: jsonEncode({
         'name': product.name,
         'price': product.price,
+        'status': product.status,
         'total_stock': product.totalStock,
         'unit': product.unit,
-        'images': product.images, // Send base64 encoded images
+        'hpp': product.hpp,
+        'images': product.images,
       }),
     );
-
-    print("server bicara : ${response.body}");
 
     if (response.statusCode != 200) {
       throw Exception('Failed to update product: ${response.body}');
@@ -69,27 +67,39 @@ class ApiService {
         'price': product.price,
         'total_stock': product.totalStock,
         'unit': product.unit,
+        'category_ids': product.categoryIds,
+        'status': product.status,
+        'images': product.images,
       }),
     );
 
+    print('Gambar ${response.body}');
+
     if (response.statusCode != 200) {
       throw Exception("Failed to add product ${response.body}");
+      print(response.statusCode);
     }
   }
 
-  Future<List<CategoryIds>> getCategories(
-      {int page = 1, int pageSize = 10, String searchQuery = ""}) async {
+  Future<List<ProductCategory>> getCategories() async {
     String url = "$baseUrl/api/v1/categories";
 
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
-      Map<String, dynamic> jsonResponse = json.decode(response.body);
-      List<dynamic> categoryJson = jsonResponse['categories'];
+      List<dynamic> jsonResponse = json.decode(response.body);
 
-      return categoryJson.map((data) => CategoryIds.fromJson(data)).toList();
+      // Mengonversi setiap item dalam JSON menjadi ProductCategory
+      return jsonResponse.map((data) {
+        if (data is Map<String, dynamic>) {
+          return ProductCategory.fromJson(data);
+        } else {
+          throw Exception('Data tidak sesuai: $data');
+        }
+      }).toList();
     } else {
-      throw Exception("Gagal memuat produk");
+      throw Exception(
+          "Failed to load categories: ${response.statusCode} ${response.body}");
     }
   }
 }

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/models/product.dart';
-import 'package:myapp/services/api_service.dart';
-import 'package:myapp/views/product/edit.dart';
+import 'package:toruerp/models/product.dart';
+import 'package:toruerp/services/api_service.dart';
+import 'package:toruerp/views/product/edit.dart';
 import 'dart:async';
 
 class ProductListScreen extends StatefulWidget {
+  const ProductListScreen({super.key});
+
   @override
   _ProductListScreenState createState() => _ProductListScreenState();
 }
@@ -92,8 +94,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
-    _debounce = Timer(Duration(milliseconds: 500), () {
-      String searchText = _searchController.text.trim().toLowerCase();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      String searchText = _searchController.text;
       setState(() {
         searchQuery = searchText; // Simpan query pencarian
         currentPage = 1; // Reset halaman
@@ -130,11 +132,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
             fillColor: Colors.amber,
             hintStyle: TextStyle(color: Colors.grey),
           ),
-          style: TextStyle(color: Colors.black),
+          style: const TextStyle(color: Colors.black),
         ),
       ),
       body: filteredProducts.isEmpty && !isLoadingMore
-          ? Center(child: Text("Tidak ada produk ditemukan"))
+          ? const Center(child: Text("Tidak ada produk ditemukan"))
           : Column(
               children: [
                 Expanded(
@@ -144,16 +146,21 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         filteredProducts.length + (isLoadingMore ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index == filteredProducts.length) {
-                        return SizedBox();
+                        return const SizedBox();
                       }
 
                       Product product = filteredProducts[index];
                       return Card(
+                        elevation: 2,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 16,
+                        ),
                         child: ListTile(
                           leading: product.images != null &&
                                   product.images!.isNotEmpty
                               ? Image.network(
-                                  'https://pos.torufarm.com/storage/app/public/product/${product.images![0]}',
+                                  'https://pos.torufarm.com/storage/app/public/product/${product.images!.last}',
                                   width: 50,
                                   height: 50,
                                   fit: BoxFit.cover,
@@ -192,11 +199,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               ),
                             ],
                           ),
-                        ),
-                        elevation: 2,
-                        margin: const EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 16,
                         ),
                       );
                     },
