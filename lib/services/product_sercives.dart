@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:toruerp/models/category.dart';
 import 'package:toruerp/models/product.dart';
 
-class ApiService {
+class ProductSercives {
   final String baseUrl = 'https://pos.torufarm.com';
 
   Future<List<Product>> fetchProducts(
@@ -77,7 +77,15 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception("Failed to add product ${response.body}");
-      print(response.statusCode);
+      //print(response.statusCode);
+    }
+  }
+
+  Future<void> deleteProduct(Product product) async {
+    final response = await http
+        .delete(Uri.parse('$baseUrl/api/v1/products/delete/${product.id}'));
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete product: ${response.body}');
     }
   }
 

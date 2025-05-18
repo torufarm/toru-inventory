@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:toruerp/models/product.dart';
-import 'package:toruerp/services/api_service.dart';
-import 'package:toruerp/views/product/edit.dart';
+import 'package:toruerp/services/product_sercives.dart';
+import 'package:toruerp/views/inventory/product/edit.dart';
 import 'dart:async';
 
 class ProductListScreen extends StatefulWidget {
@@ -58,7 +58,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     });
 
     try {
-      ApiService apiService = ApiService();
+      ProductSercives apiService = ProductSercives();
       // Jika ada query pencarian, maka gunakan searchQuery untuk pencarian
       List<Product> newProducts = await apiService.fetchProducts(
         page: currentPage,
@@ -93,7 +93,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
   // Listener untuk pencarian
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
-
     _debounce = Timer(const Duration(milliseconds: 500), () {
       String searchText = _searchController.text;
       setState(() {
@@ -120,6 +119,56 @@ class _ProductListScreenState extends State<ProductListScreen> {
     }
   }
 
+  void deleteProduct(Product product) async {
+    ProductSercives apiService = ProductSercives();
+    if (product.id == null) return;
+
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
+
+    try {
+      await apiService.deleteProduct(product);
+      // Close loading dialog
+      Navigator.of(context).pop();
+
+      setState(() {
+        products.remove(product);
+        filteredProducts.remove(product);
+      });
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${product.name} berhasil dihapus')),
+      );
+    } catch (e) {
+      // Close loading dialog
+      Navigator.of(context).pop();
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal menghapus produk: ${e.toString()}')),
+      );
+    }
+  }
+
+  // Create pull refresh
+  Future<void> _onRefresh() async {
+    setState(() {
+      currentPage = 1;
+      hasMoreProducts = true;
+      products.clear();
+    });
+    await _fetchProducts();
+  }
+
+  // Create pull to refresh
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -171,7 +220,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               : Icon(Icons.image_not_supported),
                           title: Text(product.name),
                           subtitle: Text(
-                              'Harga: Rp ${product.price}, Stok: ${product.totalStock} ${product.unit} ${product.categoryIds![0].id}'),
+                              'Harga: Rp ${product.price}, Stok: ${product.totalStock} ${product.unit}'),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -194,7 +243,30 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               IconButton(
                                 icon: Icon(Icons.delete, color: Colors.red),
                                 onPressed: () {
-                                  // Aksi Hapus
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text('Konfirmasi Hapus'),
+                                        content: Text(
+                                            'Yakin ingin menghapus ${product.name}?'),
+                                        actions: [
+                                          TextButton(
+                                            child: Text('Batal'),
+                                            onPressed: () =>
+                                                Navigator.of(context).pop(),
+                                          ),
+                                          TextButton(
+                                            child: Text('Hapus'),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                              deleteProduct(product);
+                                            },
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
                                 },
                               ),
                             ],

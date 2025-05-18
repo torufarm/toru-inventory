@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:toruerp/models/product.dart';
-import 'package:toruerp/services/api_service.dart';
+import 'package:toruerp/services/product_sercives.dart';
 
 class EditProductScreen extends StatefulWidget {
   final Product product;
@@ -109,7 +109,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
       );
 
       try {
-        ApiService apiService = ApiService();
+        ProductSercives apiService = ProductSercives();
         await apiService.updateProduct(updatedProduct);
 
         Navigator.pop(context, updatedProduct);

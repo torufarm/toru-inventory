@@ -5,10 +5,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:toruerp/models/category.dart';
 import 'package:toruerp/models/product.dart';
-import 'package:toruerp/services/api_service.dart';
+import 'package:toruerp/services/product_sercives.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:toruerp/models/category.dart';
-import 'package:toruerp/services/api_service.dart';
+import 'package:toruerp/services/product_sercives.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -37,7 +37,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   Future<void> _getCategories() async {
     try {
-      final response = await ApiService().getCategories();
+      final response = await ProductSercives().getCategories();
 
       // Tambahkan kategori ke dalam list _categories
       setState(() {
@@ -118,7 +118,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       );
 
       try {
-        await ApiService().addProduct(newProduct);
+        await ProductSercives().addProduct(newProduct);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Produk berhasil ditambah")),
         );
@@ -230,10 +230,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   return null;
                 },
               ),
+
               DropdownButtonFormField<String>(
                 value: _selectedUnit,
                 decoration: const InputDecoration(labelText: "Unit"),
-                items: ['kg', 'pack', 'gram', 'dos']
+                items: ['kg', 'pcs', 'pack', 'gr', 'lr', 'dos']
                     .map((unit) => DropdownMenuItem(
                           value: unit,
                           child: Text(unit),
@@ -273,6 +274,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   return null;
                 },
               ),
+
               TextFormField(
                 controller: _hppController,
                 decoration: const InputDecoration(labelText: "Hpp"),
